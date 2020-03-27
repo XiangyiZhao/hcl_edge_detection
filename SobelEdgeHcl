@@ -3,15 +3,15 @@ from PIL import Image
 import numpy as np
 import math
 #import os
-#import imageio
+import imageio
 
 #================================================================================================================================================
 #initialization
 #================================================================================================================================================
 path = "hcl_img.jpg"                                               # Your image path 
 hcl.init(init_dtype=hcl.Float())
-width = img.width
-height = img.height
+width = 280
+height = 412
 
 #================================================================================================================================================
 #main function
@@ -62,13 +62,13 @@ f(hcl_A, hcl_F1, hcl_F2, hcl_img)
 new_img = hcl_img.asnumpy()
 
 #define array for image
-finalimg = np.zeros((height-2, width-2, 3))
+finalimg = np.zeros((width-2, height-2, 3))
 
 #assign (length, length, length) to each pixel
-for x in range (0, height-2):
-        for y in range (0, width-2):
+for x in range (0, width-2):
+        for y in range (0, height-2):
                 for z in range (0, 3):
                         finalimg[x,y,z] = new_img[x,y]
 												
 #create an image with the array
-imageio.imsave('lane_fixed.png', newimgarry)
+imageio.imsave('new image.png', finalimg)
