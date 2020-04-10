@@ -70,3 +70,42 @@ def non_max_suppression(img, D):
           pass
   return Z
 
+#==================================================================================================
+# 4. Double Threshold
+#==================================================================================================
+def threshold(img, lowThresholdRatio=0.05, highThresholdRatio=0.09):
+  highThreshold = img.max() * highThresholdRatio
+  lowThreshold = highThreshold * lowThresholdRatio
+
+  M, N = img.shape
+  res = np.zeros((M,N), dtype=np.int32)
+
+  weak = np.int32(25)
+  strong = np.int32(255)
+
+  strong_i, strong_j = np.where(img >= highThreshold)
+  zeros_i, zeros_j = np.where(img < lowThreshold)
+
+  weak_i, weak_j = np.where((img <= highThreshold) & (img >= lowThreshold))
+
+  res[strong_i, strong_j] = strong
+  res[weak_i, weak_j] = weak
+
+  return (res, weak, strong)
+
+#==================================================================================================
+# 5. Edge tracking by Hysteresis
+#==================================================================================================
+def hysteresis(img, weak, strong=255):
+    M, N = img.shape
+    for i in range(1, M-1):
+        for j in range(1, N-1):
+            if (img[i,j] == weak):
+                try:
+                    if ((img[i+1, j-1] == strong) or (img[i+1, j] == strong) or (img[i+1, j+1] == strong) or (img[i, j-1] == strong) or (img[i, j+1] == strong) or (img [i-1, j-1] == strong) or (img[i-1, j] == strong) or (img[i-1, j+1] == strong)):
+	    img[i,j] = strong
+                    else:
+                        img[i, j] = 0
+                except IndexError as e:
+                    pass
+    return img
