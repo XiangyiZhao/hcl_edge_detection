@@ -137,9 +137,11 @@ class cannyEdgeDetector:
                             img[i, j] = 0
                     except IndexError as e:
                         pass
-
         return img
     
+    #==================================================================================================
+    # 6. Integrating the functions written before
+    #==================================================================================================
     def detect(self):
         imgs_final = []
         for i, img in enumerate(self.imgs):    
@@ -149,5 +151,4 @@ class cannyEdgeDetector:
             self.thresholdImg = self.threshold(self.nonMaxImg)
             img_final = self.hysteresis(self.thresholdImg)
             self.imgs_final.append(img_final)
-
         return self.imgs_final
