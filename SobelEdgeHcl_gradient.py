@@ -9,8 +9,8 @@ import imageio
 #================================================================================================================================================
 path = "hcl_img.jpg"                                               # Your image path 
 hcl.init(init_dtype=hcl.Float())
-width = 280
-height = 412
+img = Image.open(path)
+width, height = img.size
 
 #================================================================================================================================================
 #main function
@@ -19,10 +19,10 @@ def sobelAlgo(A, Fx, Fy):
     B = hcl.compute((height, width), lambda x,y :A[x][y][0]+A[x][y][1]+A[x][y][2],"B", dtype=hcl.Float())
     r = hcl.reduce_axis(0, 3)
     c = hcl.reduce_axis(0, 3)
-    Gx = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[y+c,x+r]*Fx[r,c],axis=[r,c]), B[y,x]), "Gx")
+    Gx = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(y>0,y<(width-1),x>0,x<(height-1)), hcl.sum(B[y+c,x+r]*Fx[r,c],axis=[r,c]), B[y,x]), "Gx")
     t = hcl.reduce_axis(0, 3)
     g = hcl.reduce_axis(0, 3)
-    Gy = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[y+g,x+t]*Fy[t,g],axis=[t,g]), B[y,x]), "Gy")
+    Gy = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(y>0,y<(width-1),x>0,x<(height-1)), hcl.sum(B[y+g,x+t]*Fy[t,g],axis=[t,g]), B[y,x]), "Gy")
     return hcl.compute((height, width), lambda y,x:(hcl.sqrt(Gx[y][x]*Gx[y][x]+Gy[y][x]*Gy[y][x]))/4328*255, dtype = hcl.Float())
 
 #================================================================================================================================================
@@ -40,7 +40,7 @@ f = hcl.build(s)
 #numpy inputs
 F1 = np.array([[1, 0, -1],[2, 0, -2],[1, 0, -1]])
 F2 = np.array([[1, 2, 1],[0, 0, 0],[-1, -2, -1]])
-img = np.asarray(imageio.imread(path)) 
+img = np.asarray(img) 
 #A1 = np.array([[[32, 54, 76],[45, 67, 230],[67, 45, 230]],[[23, 45, 67],[89, 205, 30],[67, 45, 230]],[[32, 54, 76],[230, 67, 155],[67, 45, 230]]])
             
 #numpy output 
