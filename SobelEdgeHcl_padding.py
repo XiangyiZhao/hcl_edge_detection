@@ -10,12 +10,11 @@ import imageio
 #================================================================================================================================================
 path = "castle.jpeg"                                               # Your image path 
 hcl.init(init_dtype=hcl.Float())
-img = imageio.imread(path)
-width = 2048
-height = 1536
+img = Image.open(path)
+width, height = img.size
 
 #================================================================================================================================================
-#main function
+#intensity function
 #================================================================================================================================================
 def sobelAlgo(A, Fx, Fy):
     B = hcl.compute((height+2, width+2), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
@@ -32,8 +31,8 @@ def sobelAlgo(A, Fx, Fy):
 #================================================================================================================================================
 #placeholders
 A = hcl.placeholder((height+2, width+2, 3), "A", dtype = hcl.Float())  #input placeholder
-Fx = hcl.placeholder((3,3), "Fx", dtype = hcl.Float())             #output placeholder1
-Fy = hcl.placeholder((3,3), "Fy", dtype = hcl.Float())             #output placeholder2
+Fx = hcl.placeholder((3,3), "Fx", dtype = hcl.Float())                 #output placeholder1
+Fy = hcl.placeholder((3,3), "Fy", dtype = hcl.Float())                 #output placeholder2
 
 #build the schedule
 s = hcl.create_schedule([A, Fx, Fy], sobelAlgo)
@@ -90,3 +89,32 @@ for x in range (0, height):
 
 #create an image with the array
 imageio.imsave('new_image1_pad.png', finalimg)
+
+#================================================================================================================================================
+#gradient function
+#================================================================================================================================================
+def sobelAlgo_theta(A, Fx, Fy):
+    B = hcl.compute((height+2, width+2), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
+    r = hcl.reduce_axis(0, 3)
+    c = hcl.reduce_axis(0, 3)
+    Gx = hcl.compute((height, width), lambda y,x:hcl.sum(B[y+r, x+c]*Fx[r,c], axis = [r,c]), "Gx", dtype = hcl.Float())
+    t = hcl.reduce_axis(0, 3)
+    g = hcl.reduce_axis(0, 3)
+    Gy = hcl.compute((height, width), lambda y,x:hcl.sum(B[y+t, x+g]*Fy[t,g], axis = [t,g]), "Gy", dtype = hcl.Float())
+    return hcl.compute((height, width), lambda y,x: np.arctan2(Gy[y][x]/Gx[y][x]), dtype = hcl.Float())
+
+#================================================================================================================================================
+#computations
+#================================================================================================================================================
+#build the schedule
+s2 = hcl.create_schedule([A, Fx, Fy], sobelAlgo_theta)
+f2 = hcl.build(s2)
+
+#output
+np_theta = np.zeros((height, width))
+hcl_theta = hcl.asarray(np_theta)
+
+#call the function
+f2(hcl_A, hcl_F1, hcl_F2, hcl_theta)
+new_theta = hcl_theta.asnumpy()
+print(new_theta)
