@@ -92,7 +92,7 @@ fx(hcl_A, hcl_F1, hcl_F2, hcl_x)
 fy(hcl_A, hcl_F1, hcl_F2, hcl_y)
 np_x = hcl_x.asnumpy()
 np_y = hcl_y.asnumpy()
-theta = np.arctan2(np_y, np_x)
+edge_dir = np.arctan2(np_y, np_x)
 
 #=================================================================================================================================================
 # Non-maximum Suppression
@@ -103,7 +103,7 @@ def non_max_sup(I, theta, Z, q, r):
                 with hcl.if_(D[x][y] < 0):
                         D[x][y] = D[x][y]+180
 
-                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x]>=157.5,D[x][y]<=180))):
+                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x][y]>=157.5,D[x][y]<=180))):
                         q = I[x][y+1]
                         r = I[x][y-1]
                 with hcl.elif_(hcl.and_(22.5 <= D[x][y],D[x][y] < 67.5)):
@@ -142,6 +142,7 @@ r = 255
 
 #hcl input transfer
 hcl_edge_img = hcl.asarray(edge_img)
+hcl_edge_dir = hcl.asarray(edge_dir)
 hcl_Z = hcl.asarray(np.zeros((height, width)))
 
 #hcl output transfer
