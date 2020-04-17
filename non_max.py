@@ -6,7 +6,7 @@ import imageio
 
 
 #initialization
-path = "hcl_img.jpg"                                               # Your image path 
+path = "home.jpg"                                               # Your image path 
 hcl.init(init_dtype=hcl.Float())
 or_img = Image.open(path)
 width, height = or_img.size
@@ -106,13 +106,13 @@ def non_max_sup(I, theta, Z, q, r):
                 with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x]>=157.5,D[x][y]<=180))):
                         q = I[x][y+1]
                         r = I[x][y-1]
-                with hcl.elif_(22.5 <= D[x][y] < 67.5):
+                with hcl.elif_(hcl.and_(22.5 <= D[x][y],D[x][y] < 67.5)):
                         q = I[x+1][y-1]
                         r = I[x-1][y+1]
-                with hcl.elif_(67.5 <= D[x][y] < 112.5):
+                with hcl.elif_(hcl.and_(67.5 <= D[x][y],D[x][y] < 112.5)):
                         q = I[x+1][y]
                         r = I[x-1][y]
-                with hcl.elif_(112.5 <= D[x][y] < 157.5):
+                with hcl.elif_(hcl.and_(112.5 <= D[x][y],D[x][y] < 157.5)):
                         q = I[x-1][y-1]
                         r = I[x+1][y+1]
 
