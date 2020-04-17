@@ -13,17 +13,17 @@ img = Image.open(path)
 width, height = img.size
 
 #================================================================================================================================================
-#main function
+#intensity function
 #================================================================================================================================================
 def sobelAlgo(A, Fx, Fy):
     B = hcl.compute((height, width), lambda x,y :A[x][y][0]+A[x][y][1]+A[x][y][2],"B", dtype=hcl.Float())
     r = hcl.reduce_axis(0, 3)
     c = hcl.reduce_axis(0, 3)
-    Gx = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(y>0,y<(width-1),x>0,x<(height-1)), hcl.sum(B[y+c,x+r]*Fx[r,c],axis=[r,c]), B[y,x]), "Gx")
+    Gx = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+r,y+c]*Fx[r,c],axis=[r,c]), B[x,y]), "Gx")
     t = hcl.reduce_axis(0, 3)
     g = hcl.reduce_axis(0, 3)
-    Gy = hcl.compute((height, width), lambda y,x: hcl.select(hcl.and_(y>0,y<(width-1),x>0,x<(height-1)), hcl.sum(B[y+g,x+t]*Fy[t,g],axis=[t,g]), B[y,x]), "Gy")
-    return hcl.compute((height, width), lambda y,x:(hcl.sqrt(Gx[y][x]*Gx[y][x]+Gy[y][x]*Gy[y][x]))/4328*255, dtype = hcl.Float())
+    Gy = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+t,y+g]*Fy[t,g],axis=[t,g]), B[x,y]), "Gy")
+    return hcl.compute((height, width), lambda x,y:(hcl.sqrt(Gx[x][y]*Gx[x][y]+Gy[x][y]*Gy[x][y]))/4328*255, dtype = hcl.Float())
 
 #================================================================================================================================================
 #computations
@@ -61,13 +61,52 @@ f(hcl_A, hcl_F1, hcl_F2, hcl_img)
 new_img = hcl_img.asnumpy()
 
 #create an array for the final image output
-finalimg = np.zeros((height, width, 3))
+sobel_img = np.zeros((height, width, 3))
 
 #assign (new_img, new_img, new_img) to each pixel
 for x in range (0, height):
         for y in range (0, width):
                 for z in range (0, 3):
-                        finalimg[x,y,z] = new_img[x,y]
+                        sobel_img[x,y,z] = new_img[x,y]
 												
 #create an image with the array
-imageio.imsave('new_image.png', finalimg)
+imageio.imsave('new_image.png', sobel_img)
+
+#================================================================================================================================================
+#theta function
+#================================================================================================================================================
+def sobelAlgo_Gx(A, Fx, Fy):
+    B = hcl.compute((height, width), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
+    r = hcl.reduce_axis(0, 3)
+    c = hcl.reduce_axis(0, 3)
+    Gx = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+r,y+c]*Fx[r,c],axis=[r,c]), B[x,y]), "Gx")
+    return Gx
+def sobelAlgo_Gy(A, Fx, Fy):
+    B = hcl.compute((height+2, width+2), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
+    t = hcl.reduce_axis(0, 3)
+    g = hcl.reduce_axis(0, 3)
+    Gy = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+t,y+g]*Fy[t,g],axis=[t,g]), B[x,y]), "Gy")
+    return Gy
+#================================================================================================================================================
+#computations
+#================================================================================================================================================
+#build the schedule
+sx = hcl.create_schedule([A, Fx, Fy], sobelAlgo_Gx)
+fx = hcl.build(sx)
+
+sy = hcl.create_schedule([A, Fx, Fy], sobelAlgo_Gy)
+fy = hcl.build(sy)
+
+#output
+np_x = np.zeros((height, width))
+hcl_x = hcl.asarray(np_x)
+
+np_y = np.zeros((height, width))
+hcl_y = hcl.asarray(np_y)
+
+#call the function
+fx(hcl_A, hcl_F1, hcl_F2, hcl_x)
+fy(hcl_A, hcl_F1, hcl_F2, hcl_y)
+np_x = hcl_x.asnumpy()
+np_y = hcl_y.asnumpy()
+theta = np.arctan2(np_y, np_x)
