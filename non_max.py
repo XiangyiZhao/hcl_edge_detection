@@ -82,7 +82,7 @@ def sobelAlgo_Gx(A, Fx, Fy):
     Gx = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+r,y+c]*Fx[r,c],axis=[r,c]), B[x,y]), "Gx")
     return Gx
 def sobelAlgo_Gy(A, Fx, Fy):
-    B = hcl.compute((height+2, width+2), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
+    B = hcl.compute((height, width), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
     t = hcl.reduce_axis(0, 3)
     g = hcl.reduce_axis(0, 3)
     Gy = hcl.compute((height, width), lambda x,y: hcl.select(hcl.and_(x>0,x<(height-1),y>0,y<(width-1)), hcl.sum(B[x+t,y+g]*Fy[t,g],axis=[t,g]), B[x,y]), "Gy")
