@@ -97,40 +97,40 @@ theta = np.arctan2(np_y, np_x)
 #=================================================================================================================================================
 # Non-maximum Suppression
 #=================================================================================================================================================
-def non_max_sup(I, theta, q, r):
-	D = hcl.compute((height, width), lambda x,y: hcl.sum(theta[x][y]*180/np.pi), "D")      // radian matrix -> degree matrix
-	def loop_body(x, y):
-		with hcl.if_(D[x,y] < 0):
-			D[x,y] = D[x,y]+180
-	Z = hcl.asarray(np.zeros(height, width))
-	def loop_body(x, y):
-		with hcl.if_((0 <= D[x,y] < 22.5) or (157.5 <= D[x,y] <= 180)):
-			q = I[x,y+1]
-        		r = I[x,y-1]
-		with hcl.elif_(22.5 <= D[x,y] < 67.5):
-			q = I[x+1,y-1]
-			r = I[x-1,y+1]
-		with hcl.elif_(67.5 <= D[x,y] < 112.5):
-			q = I[x+1,y]
-                	r = I[x-1,y]
-		with hcl.elif_(112.5 <= D[x,y] < 157.5):
-                	q = I[x-1,y-1]
-                	r = I[x+1,y+1]
-		
-		with hcl.if_(I[x,y]>=q) and (I[x,y]>=r):
-               		Z[x,y] = I[x,y]
-            	with hcl.else_():
-                	Z[x,y] = 0
-  	return Z
+def non_max_sup(I, theta, Z, q, r):
+        D = hcl.compute((height, width), lambda x,y: theta[x][y]*180/np.pi, "D")
+        def loop_body(x, y):
+                with hcl.if_(D[x][y] < 0):
+                        D[x][y] = D[x][y]+180
+
+                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x]>=157.5,D[x][y]<=180))):
+                        q = I[x][y+1]
+                        r = I[x][y-1]
+                with hcl.elif_(22.5 <= D[x][y] < 67.5):
+                        q = I[x+1][y-1]
+                        r = I[x-1][y+1]
+                with hcl.elif_(67.5 <= D[x][y] < 112.5):
+                        q = I[x+1][y]
+                        r = I[x-1][y]
+                with hcl.elif_(112.5 <= D[x][y] < 157.5):
+                        q = I[x-1][y-1]
+                        r = I[x+1][y+1]
+
+                with hcl.if_(hcl.and_(I[x][y]>=q,I[x][y]>=r)):
+                        Z[x][y] = I[x][y]
+                with hcl.else_():
+                        Z[x][y] = 0
+        hcl.mutate(Z.shape, lambda x,y: loop_body(x,y))
 
 #placeholders
 I = hcl.placeholder((height, width), "I", dtype = hcl.Float())         #input placeholder1
 theta = hcl.placeholder((height, width), "theta", dtype = hcl.Float()) #input placeholder2
-q = hcl.placeholder((), "q")                                           #input placeholder3
-r = hcl.placeholder((), "r")                                           #input placeholder4
+Z = hcl.placeholder((height, width), "Z", dtype = hcl.Float())         #input placeholder3
+q = hcl.placeholder((), "q")                                           #input placeholder4
+r = hcl.placeholder((), "r")                                           #input placeholder5
 
 #build the schedule
-sm = hcl.create_schedule([I, theta, q, r], non_max_sup)
+sm = hcl.create_schedule([I, theta, Z, q, r], non_max_sup)
 fm = hcl.build(sm)
 
 #numpy inputs
@@ -138,17 +138,17 @@ q = 255
 r = 255
 
 #numpy output 
-np_img = np.zeros((height, width))
+#np_img = np.zeros((height, width))
 
 #hcl input transfer
 hcl_edge_img = hcl.asarray(edge_img)
-hcl_theta = hcl.asarray(theta)
-    
+hcl_Z = hcl.asarray(np.zeros((height, width)))
+
 #hcl output transfer
-hcl_img = hcl.asarray(np_img)
+#hcl_img = hcl.asarray(np_img)
 
 #call the function
-f(hcl_edge_img, hcl_theta, q, r, hcl_img)
+f(hcl_edge_img, theta, hcl_Z, q, r)
 
 #change the type of output back to numpy array
 non_max_img = hcl_img.asnumpy()
@@ -161,6 +161,6 @@ for x in range (0, height):
         for y in range (0, width):
                 for z in range (0, 3):
                         final_img[x,y,z] = non_max_img[x,y]
-												
+
 #create an image with the array
-imageio.imsave('new_image.png', sobel_img)
+imageio.imsave('home_nonMax.jpg', sobel_img)
