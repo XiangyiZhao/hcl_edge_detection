@@ -99,6 +99,9 @@ theta = np.arctan2(np_y, np_x)
 #=================================================================================================================================================
 def non_max_sup(I, theta, q, r):
 	D = hcl.compute((height, width), lambda x,y: hcl.sum(theta[x][y]*180/np.pi), "D")      // radian matrix -> degree matrix
+	def loop_body(x, y):
+		with hcl.if_(D[x,y] < 0):
+			D[x,y] = D[x,y]+180
 	Z = hcl.asarray(np.zeros(height, width))
 	def loop_body(x, y):
 		with hcl.if_((0 <= D[x,y] < 22.5) or (157.5 <= D[x,y] <= 180)):
