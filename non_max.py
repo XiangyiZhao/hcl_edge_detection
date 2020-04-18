@@ -103,20 +103,20 @@ def non_max_sup(I, theta, Z, q, r):
                 with hcl.if_(D[x][y] < 0):
                         D[x][y] = D[x][y]+180
 
-                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x][y]>=157.5,D[x][y]<=180))):
+                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0, D[x][y]<22.5), hcl.and_(D[x][y]>=157.5, D[x][y]<=180))):
                         q = I[x][y+1]
                         r = I[x][y-1]
-                with hcl.elif_(hcl.and_(22.5 <= D[x][y],D[x][y] < 67.5)):
+                with hcl.elif_(hcl.and_(22.5<=D[x][y], D[x][y]<67.5)):
                         q = I[x+1][y-1]
                         r = I[x-1][y+1]
-                with hcl.elif_(hcl.and_(67.5 <= D[x][y],D[x][y] < 112.5)):
+                with hcl.elif_(hcl.and_(67.5<=D[x][y], D[x][y]<112.5)):
                         q = I[x+1][y]
                         r = I[x-1][y]
-                with hcl.elif_(hcl.and_(112.5 <= D[x][y],D[x][y] < 157.5)):
+                with hcl.elif_(hcl.and_(112.5<=D[x][y], D[x][y]<157.5)):
                         q = I[x-1][y-1]
                         r = I[x+1][y+1]
 
-                with hcl.if_(hcl.and_(I[x][y]>=q,I[x][y]>=r)):
+                with hcl.if_(hcl.and_(I[x][y]>=q, I[x][y]>=r)):
                         Z[x][y] = I[x][y]
                 with hcl.else_():
                         Z[x][y] = 0
@@ -152,7 +152,7 @@ hcl_Z = hcl.asarray(np.zeros((height, width)))
 f(hcl_edge_img, theta, hcl_Z, q, r)
 
 #change the type of output back to numpy array
-non_max_img = hcl_img.asnumpy()
+non_max_img = hcl_Z.asnumpy()
 
 #create an array for the final image output
 final_img = np.zeros((height, width, 3))
@@ -164,4 +164,4 @@ for x in range (0, height):
                         final_img[x,y,z] = non_max_img[x,y]
 
 #create an image with the array
-imageio.imsave('home_nonMax.jpg', sobel_img)
+imageio.imsave('home_nonMax.jpg', final_img)
