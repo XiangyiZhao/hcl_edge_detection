@@ -97,26 +97,28 @@ edge_dir = np.arctan2(np_y, np_x)
 #=================================================================================================================================================
 # Non-maximum Suppression
 #=================================================================================================================================================
-def non_max_sup(I, theta, Z, q, r):
+def non_max_sup(I, theta, Z):
         D = hcl.compute((height, width), lambda x,y: theta[x][y]*180/np.pi, "D")
         def loop_body(x, y):
+                q = 255
+                r = 255
                 with hcl.if_(D[x][y] < 0):
                         D[x][y] = D[x][y]+180
 
-                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0, D[x][y]<22.5), hcl.and_(D[x][y]>=157.5, D[x][y]<=180))):
+                with hcl.if_(hcl.or_(hcl.and_(D[x][y]>=0,D[x][y]<22.5),hcl.and_(D[x][y]>=157.5,D[x][y]<=180))):
                         q = I[x][y+1]
                         r = I[x][y-1]
-                with hcl.elif_(hcl.and_(22.5<=D[x][y], D[x][y]<67.5)):
+                with hcl.elif_(hcl.and_(22.5 <= D[x][y],D[x][y] < 67.5)):
                         q = I[x+1][y-1]
                         r = I[x-1][y+1]
-                with hcl.elif_(hcl.and_(67.5<=D[x][y], D[x][y]<112.5)):
+                with hcl.elif_(hcl.and_(67.5 <= D[x][y],D[x][y] < 112.5)):
                         q = I[x+1][y]
                         r = I[x-1][y]
-                with hcl.elif_(hcl.and_(112.5<=D[x][y], D[x][y]<157.5)):
+                with hcl.elif_(hcl.and_(112.5 <= D[x][y],D[x][y] < 157.5)):
                         q = I[x-1][y-1]
                         r = I[x+1][y+1]
 
-                with hcl.if_(hcl.and_(I[x][y]>=q, I[x][y]>=r)):
+                with hcl.if_(hcl.and_(I[x][y]>=q,I[x][y]>=r)):
                         Z[x][y] = I[x][y]
                 with hcl.else_():
                         Z[x][y] = 0
@@ -126,19 +128,12 @@ def non_max_sup(I, theta, Z, q, r):
 I = hcl.placeholder((height, width), "I", dtype = hcl.Float())         #input placeholder1
 theta = hcl.placeholder((height, width), "theta", dtype = hcl.Float()) #input placeholder2
 Z = hcl.placeholder((height, width), "Z", dtype = hcl.Float())         #input placeholder3
-q = hcl.placeholder((), "q")                                           #input placeholder4
-r = hcl.placeholder((), "r")                                           #input placeholder5
+#q = hcl.placeholder((), "q")                                           #input placeholder4
+#r = hcl.placeholder((), "r")                                           #input placeholder5
 
 #build the schedule
-sm = hcl.create_schedule([I, theta, Z, q, r], non_max_sup)
+sm = hcl.create_schedule([I, theta, Z], non_max_sup)
 fm = hcl.build(sm)
-
-#numpy inputs
-q = 255
-r = 255
-
-#numpy output 
-#np_img = np.zeros((height, width))
 
 #hcl input transfer
 hcl_edge_img = hcl.asarray(edge_img)
@@ -149,7 +144,7 @@ hcl_Z = hcl.asarray(np.zeros((height, width)))
 #hcl_img = hcl.asarray(np_img)
 
 #call the function
-f(hcl_edge_img, theta, hcl_Z, q, r)
+f(hcl_edge_img, hcl_edge_dir, hcl_Z)
 
 #change the type of output back to numpy array
 non_max_img = hcl_Z.asnumpy()
