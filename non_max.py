@@ -128,8 +128,6 @@ def non_max_sup(I, theta, Z):
 I = hcl.placeholder((height, width), "I", dtype = hcl.Float())         #input placeholder1
 theta = hcl.placeholder((height, width), "theta", dtype = hcl.Float()) #input placeholder2
 Z = hcl.placeholder((height, width), "Z", dtype = hcl.Float())         #input placeholder3
-#q = hcl.placeholder((), "q")                                           #input placeholder4
-#r = hcl.placeholder((), "r")                                           #input placeholder5
 
 #build the schedule
 sm = hcl.create_schedule([I, theta, Z], non_max_sup)
@@ -139,9 +137,6 @@ fm = hcl.build(sm)
 hcl_edge_img = hcl.asarray(edge_img)
 hcl_edge_dir = hcl.asarray(edge_dir)
 hcl_Z = hcl.asarray(np.zeros((height, width)))
-
-#hcl output transfer
-#hcl_img = hcl.asarray(np_img)
 
 #call the function
 f(hcl_edge_img, hcl_edge_dir, hcl_Z)
