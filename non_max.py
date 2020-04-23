@@ -139,7 +139,7 @@ hcl_edge_dir = hcl.asarray(edge_dir)
 hcl_Z = hcl.asarray(np.zeros((height, width)))
 
 #call the function
-f(hcl_edge_img, hcl_edge_dir, hcl_Z)
+fm(hcl_edge_img, hcl_edge_dir, hcl_Z)
 
 #change the type of output back to numpy array
 non_max_img = hcl_Z.asnumpy()
