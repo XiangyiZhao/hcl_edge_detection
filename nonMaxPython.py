@@ -6,6 +6,13 @@ from PIL import Image
 import imageio
 import numpy as np
 
+def gaussian_kernel(size, sigma=1):
+        size = int(size) // 2
+        x, y = np.mgrid[-size:size+1, -size:size+1]
+        normal = 1 / (2.0 * np.pi * sigma**2)
+        g =  np.exp(-((x**2 + y**2) / (2.0*sigma**2))) * normal
+        return g
+
 def sobel_filters(img):
         Kx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], np.float32)
         Ky = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]], np.float32)
@@ -59,10 +66,11 @@ def non_max_suppression(img, D):
 def main():
   path = "home.jpg"
   img = np.asarray(Image.open(path).convert('L'))
-  sobel_img, theta = sobel_filters(img)
+  smooth_img = convolve(img, gaussian_kernel(5, 1))
+  sobel_img, theta = sobel_filters(smooth_img)
   final_img = non_max_suppression(sobel_img, theta)
-  imageio.imsave('home_nonMax.jpg', final_img)
-  
+  imageio.imsave('home_sobel_py.jpg', sobel_img)
+        
 if __name__=='__main__':
   main()
   
