@@ -25,7 +25,7 @@ def sobelAlgo(A, Fx, Fy):
     t = hcl.reduce_axis(0, 3)
     g = hcl.reduce_axis(0, 3)
     Gy = hcl.compute((height, width), lambda y,x:hcl.sum(B[y+t, x+g]*Fy[t,g], axis = [t,g]), "Gy")
-    return hcl.compute((height, width), lambda y,x:(hcl.sqrt(Gx[y][x]*Gx[y][x]+Gy[y][x]*Gy[y][x]))/4328*25)
+    return hcl.compute((height, width), lambda y,x:(hcl.sqrt(Gx[y][x]*Gx[y][x]+Gy[y][x]*Gy[y][x]))/4328*255)
 
 #================================================================================================================================================
 #computations
