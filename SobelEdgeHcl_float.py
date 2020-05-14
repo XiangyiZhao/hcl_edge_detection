@@ -8,7 +8,7 @@ import imageio
 #================================================================================================================================================
 #initialization
 #================================================================================================================================================
-path = "castle.jpeg"                                               # Your image path 
+path = "home.jpg"                                               # Your image path 
 hcl.init(init_dtype=hcl.Float())
 img = Image.open(path)
 width, height = img.size
@@ -88,33 +88,4 @@ for x in range (0, height):
                         finalimg[x,y,z] = new_img[x,y]
 
 #create an image with the array
-imageio.imsave('new_image1_pad.png', finalimg)
-
-#================================================================================================================================================
-#gradient function
-#================================================================================================================================================
-def sobelAlgo_theta(A, Fx, Fy):
-    B = hcl.compute((height+2, width+2), lambda x,y:A[x][y][0]+A[x][y][1]+A[x][y][2], "B",dtype=hcl.Float())
-    r = hcl.reduce_axis(0, 3)
-    c = hcl.reduce_axis(0, 3)
-    Gx = hcl.compute((height, width), lambda y,x:hcl.sum(B[y+r, x+c]*Fx[r,c], axis = [r,c]), "Gx", dtype = hcl.Float())
-    t = hcl.reduce_axis(0, 3)
-    g = hcl.reduce_axis(0, 3)
-    Gy = hcl.compute((height, width), lambda y,x:hcl.sum(B[y+t, x+g]*Fy[t,g], axis = [t,g]), "Gy", dtype = hcl.Float())
-    return hcl.compute((height, width), lambda y,x: np.arctan2(Gy[y][x]/Gx[y][x]), dtype = hcl.Float())
-
-#================================================================================================================================================
-#computations
-#================================================================================================================================================
-#build the schedule
-s2 = hcl.create_schedule([A, Fx, Fy], sobelAlgo_theta)
-f2 = hcl.build(s2)
-
-#output
-np_theta = np.zeros((height, width))
-hcl_theta = hcl.asarray(np_theta)
-
-#call the function
-f2(hcl_A, hcl_F1, hcl_F2, hcl_theta)
-new_theta = hcl_theta.asnumpy()
-print(new_theta)
+imageio.imsave('home_float.jpg', finalimg)
