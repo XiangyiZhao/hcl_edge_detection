@@ -97,3 +97,5 @@ for x in range (0, height):
                 for z in range (0, 3):
                         finalimg[x,y,z] = new_img[x,y]
                                                                                                                                                        
+#create an image with the array
+imageio.imsave('home_fixed_30_16_WB.jpg', finalimg)
