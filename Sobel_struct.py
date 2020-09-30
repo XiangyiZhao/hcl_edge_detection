@@ -16,7 +16,7 @@ def test_sobel_vivado_hls():
 
     def sobel(A,Gx,Gy):
        D = hcl.compute((height,width), lambda x,y: (A[x][y][0], A[x][y][1], A[x][y][2]), dtype = ts)
-       B = hcl.compute((height,width), lambda x,y: D[x][y][0] + D[x][y][1] + D[x][y][2], "B", dtype = hcl.Float())
+       B = hcl.compute((height,width), lambda x,y: D[x][y].fa + D[x][y].fb + D[x][y].fc, "B", dtype = hcl.Float())
        r = hcl.reduce_axis(0,3)
        c = hcl.reduce_axis(0,3)
        Fx = hcl.compute((height-2, width-2),
