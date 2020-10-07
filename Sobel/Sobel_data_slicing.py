@@ -13,7 +13,7 @@ def test_sobel_vivado_hls():
     Gy = hcl.placeholder((3,3),"Gy")
 
     def sobel(RGB,Gx,Gy):
-       B = hcl.compute((height,width), lambda x,y: RGB[x][y][0:7] + RGB[x][y][8:15] + RGB[x][y][16:23], "B")
+       B = hcl.compute((height,width), lambda x,y: RGB[x][y][8:0] + RGB[x][y][16:8] + RGB[x][y][24:16], "B")
        r = hcl.reduce_axis(0,3)
        c = hcl.reduce_axis(0,3)
        D = hcl.compute((height-2, width-2),
