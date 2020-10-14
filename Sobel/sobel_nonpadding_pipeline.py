@@ -22,7 +22,7 @@ def test_sobel_vivado_hls():
        t = hcl.reduce_axis(0, 3)
        g = hcl.reduce_axis(0, 3)
        E = hcl.compute((height-2, width-2),
-            lambda x,y: hcl.sum(B[x+t, y+g]*Gy[t,g], axis=[t,g]), "yy")
+            lambda x,y: hcl.sum(B[x+t, y+g]*Gy[t,g], axis=[t,g]), name="sum2"), "yy")
        return  hcl.compute((height-2,width-2),
             lambda x,y:hcl.sqrt(D[x][y]*D[x][y]+E[x][y]*E[x][y])*0.05891867,"Fimg")
 
@@ -31,8 +31,6 @@ def test_sobel_vivado_hls():
     LBY = s.reuse_at(sobel.B._op, s[sobel.yy], sobel.yy.axis[0], "LBY")
     WBX = s.reuse_at(LBX, s[sobel.xx], sobel.xx.axis[1], "WBX")
     WBY = s.reuse_at(LBY, s[sobel.yy], sobel.yy.axis[1], "WBY")
-    #WBX = s.reuse_at(sobel.B._op, s[sobel.xx], sobel.xx.axis[1], "WBX")
-    #WBY = s.reuse_at(sobel.B._op, s[sobel.yy], sobel.yy.axis[1], "WBY")
     s.partition(LBX, dim=1)
     s.partition(LBY, dim=1)
     s.partition(WBX)
@@ -48,8 +46,7 @@ def test_sobel_vivado_hls():
     s.to([A,Gx,Gy], target.xcel)
     s.to(sobel.Fimg, target.host)
 
-    target.config(compile="vivado_hls", mode="csim|csyn")
-   # print(hcl.build(s, target))
+    target.config(compile="vivado_hls", mode="csyn")
 
     npGx = np.array([[1, 0, -1],[2, 0, -2],[1, 0, -1]])
     npGy = np.array([[1, 2, 1],[0, 0, 0],[-1, -2, -1]])
@@ -57,7 +54,7 @@ def test_sobel_vivado_hls():
     hcl_Gy = hcl.asarray(npGy)
     npA = np.array(img)
     hcl_A = hcl.asarray(npA)
-    npF = np.zeros((height-2,width-2))
+    npF = np.zeros((height-2, width-2))
     hcl_F = hcl.asarray(npF)
 
     f = hcl.build(s, target)
