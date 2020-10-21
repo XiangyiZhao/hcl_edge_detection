@@ -46,7 +46,7 @@ def test_sobel_vivado_hls():
     s.to([RGB,Gx,Gy], target.xcel)
     s.to(sobel.Fimg, target.host)
 
-    target.config(compile="vivado_hls", mode="csim|csyn")
+    target.config(compile="vivado_hls", mode="csyn")
    # print(hcl.build(s, target))
 
     npGx = np.array([[1, 0, -1],[2, 0, -2],[1, 0, -1]])
